@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Chandra</string>
+    <string name="countries_list">Countries List</string>
+<!--    <string name="country_info">%1$s, %2$s, %3$s</string>-->
+    <string name="country_info">"Afghanistan, AS, AF"</string>
+
+</resources>
