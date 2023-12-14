@@ -15,7 +15,8 @@ This project displays a list of countries in a recyclerview using the following 
 
 
 ## Tests
-
+- Test cases written using [JUnit4](https://junit.org/junit4/)
+- Test doubles using Mockito [Mockito](https://site.mockito.org/)
 
 ## Other useful features
 - Dependency injection (with [Koin](https://insert-koin.io/))
