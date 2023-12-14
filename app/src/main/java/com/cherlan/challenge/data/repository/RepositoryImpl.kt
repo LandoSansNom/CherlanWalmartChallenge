@@ -3,7 +3,6 @@ package com.cherlan.challenge.data.repository
 import com.cherlan.challenge.data.remote.ApiCall
 import com.cherlan.challenge.domain.Result
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow

@@ -6,6 +6,7 @@ import com.cherlan.challenge.domain.Result
 import com.cherlan.challenge.domain.usecase.GetAllCountriesUseCase
 import com.cherlan.challenge.ui.countryScreen.CountryViewModel
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -24,32 +25,42 @@ import org.mockito.MockitoAnnotations
 class CountryViewModelTest {
 
     @get:Rule
-    var instantExecutorRule = InstantTaskExecutorRule()
+   var instantExecutorRule = InstantTaskExecutorRule()
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     lateinit var countryViewModel: CountryViewModel
-
-    @Mock
+    lateinit var fakeRepository: FakeRepository
     lateinit var getAllCountriesUseCase: GetAllCountriesUseCase
 
-    val testScheduler = TestCoroutineScheduler()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val testScope = TestScope(testDispatcher)
 
 
 
     @Before
     fun startUp() {
         MockitoAnnotations.openMocks(this)
+        fakeRepository = FakeRepository()
+        getAllCountriesUseCase = GetAllCountriesUseCase(fakeRepository)
         countryViewModel = CountryViewModel(getAllCountriesUseCase)
 
     }
 
     @Test
-    fun `fetch three countries and succeed`() = testScope.runTest {
-        val countries = flowOf(
+    fun `fetch countries and succeed with empty list`() = runTest {
+
+        countryViewModel.getAllCountries() // trigger the usecase
+        advanceUntilIdle()
+        assertThat(countryViewModel.countryList.value).isEqualTo(Result.Loading)
+
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `fetch three countries and succeed`() = runTest {
+
+
+        val countries =
             Result.Success(
                 listOf(
                     Country(name = "France", capital = "Paris"),
@@ -57,10 +68,9 @@ class CountryViewModelTest {
                     Country(name = "England", capital = "Londres")
                 )
             )
-        )
 
-        Mockito.`when`(getAllCountriesUseCase.getAllCountries()).thenReturn ( countries )
 
+        fakeRepository.emit(countries)
         countryViewModel.getAllCountries() // trigger the usecase
         advanceUntilIdle()
         assertThat(countryViewModel.countryList.value).isEqualTo(countries)
@@ -68,26 +78,12 @@ class CountryViewModelTest {
     }
 
     @Test
-    fun `fetch countries and succeed with empty list`() = testScope.runTest {
-        val result = flowOf(Result.Loading)
+    fun `fetch countries and fail`() = runTest {
+        val result = Result.Failure("Failed because of test usecase")
 
-        Mockito.`when`(getAllCountriesUseCase.getAllCountries()).then { result }
-
+        fakeRepository.emit(result)
         countryViewModel.getAllCountries() // trigger the usecase
         advanceUntilIdle()
-
-        assertThat(countryViewModel.countryList.value).isEqualTo(result)
-
-    }
-
-    @Test
-    fun `fetch countries and fail`() = testScope.runTest {
-        val result = flowOf(Result.Failure("Failed because of test usecase"))
-        Mockito.`when`(getAllCountriesUseCase.getAllCountries()).then { result }
-
-        countryViewModel.getAllCountries() // trigger the usecase
-        advanceUntilIdle()
-
         assertThat(countryViewModel.countryList.value).isEqualTo(result)
 
     }
